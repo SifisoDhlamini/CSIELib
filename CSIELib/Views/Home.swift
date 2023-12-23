@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Firebase
+import FirebaseFirestore
 import FirebaseStorage
 
 extension DateFormatter {
@@ -20,6 +21,7 @@ extension DateFormatter {
 struct Home: View {
     @State private var err: String = ""
     @State private var selectedDate: Date?
+    @State private var bookingsForWeek: [Date: [Booking]] = [:]
     
         // Function to get the dates for the current week
     private func getDatesForCurrentWeek() -> [Date] {
@@ -28,6 +30,18 @@ struct Home: View {
         let weekday = calendar.component(.weekday, from: today)
         let startDate = calendar.date(byAdding: .day, value: 2 - weekday, to: today)!
         return (0..<5).map { calendar.date(byAdding: .day, value: $0, to: startDate)! }
+    }
+    
+    func fetchBookings(for date: Date) async throws -> [Booking] {
+        let db = Firestore.firestore()
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy/MM/dd"
+        let dateString = dateFormatter.string(from: date)
+        
+        let docRef = db.collection("bookings").whereField("date", isEqualTo: dateString)
+        let snapshot = try await docRef.getDocuments()
+        
+        return try snapshot.documents.compactMap { try $0.data(as: Booking.self) }
     }
     
     var body: some View {
@@ -42,23 +56,36 @@ struct Home: View {
                 VStack {
                     List {
                         ForEach(getDatesForCurrentWeek(), id: \.self) { date in
-                            NavigationLink(
-                                destination: BookingPageView(date: date),
-                                label: {
-                                    HStack {
-                                        Spacer()
-                                        Text(date, formatter: DateFormatter.dayOfWeekFormatter)
-                                            .foregroundColor(date < Date() ? .primary : .gray)
-                                            .frame(width: 100, alignment: .leading)
-                                        Text(date, style: .date)
-                                            .font(.headline)
-                                            .foregroundColor(date < Date() ? .primary : .gray)
-                                            .opacity(date < Date() ? 0.5 : 1.0)
-                                        Spacer()
+                            let bookingsForDate = bookingsForWeek[date] ?? []
+                            let allSeatsBooked = bookingsForDate.allSatisfy { $0.seat.booked }
+                            
+//                            if date < Date() || allSeatsBooked {
+//                                HStack {
+//                                    Spacer()
+//                                    Text(date, formatter: DateFormatter.dayOfWeekFormatter)
+//                                        .frame(width: 100, alignment: .leading)
+//                                    Divider()
+//                                    Text(date, style: .date)
+//                                        .font(.headline)
+//                                    Spacer()
+//                                }
+//                                .opacity(0.5)
+//                            } else {
+                                NavigationLink(
+                                    destination: RowView(date: date),
+                                    label: {
+                                        HStack {
+                                            Spacer()
+                                            Text(date, formatter: DateFormatter.dayOfWeekFormatter)
+                                                .frame(width: 100, alignment: .leading)
+                                            Divider()
+                                            Text(date, style: .date)
+                                                .font(.headline)
+                                            Spacer()
+                                        }
                                     }
-                                    
-                                }
-                            )
+                                )
+                            //}
                         }
                     }
                     
@@ -72,27 +99,43 @@ struct Home: View {
                     )
                 }
                 .frame(width: 400, height: 300)
-                .navigationTitle("Make a booking")
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button(action: {
-                            Task {
-                                do {
-                                    try await Authentication().logout()
-                                } catch let e {
-                                    err = e.localizedDescription
-                                }
+                .background(Color.clear)
+            }
+            .navigationTitle("CSIELib")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        Task {
+                            do {
+                                try await Authentication().logout()
+                            } catch let e {
+                                err = e.localizedDescription
                             }
-                        }) {
-                            Text("Logout")
                         }
+                    }) {
+                        Text("Logout")
                     }
                 }
-                
+            }
+        }
+        .alert(isPresented: Binding<Bool>(
+            get: { !$err.wrappedValue.isEmpty },
+            set: { if !$0 { $err.wrappedValue = "" } }
+        )) {
+            Alert(title: Text("Error"), message: Text(err), dismissButton: .default(Text("OK")))
+        }
+        .task {
+            do {
+                for date in getDatesForCurrentWeek() {
+                    bookingsForWeek[date] = try await fetchBookings(for: date)
+                }
+            } catch {
+                err = "Something went wrong with fetching the bookings: \(error)"
             }
         }
     }
 }
+
 
 #Preview {
     Home()

@@ -16,20 +16,38 @@ class BookingViewModel: ObservableObject {
     private var db = Firestore.firestore()
     private var listenerRegistration: ListenerRegistration?
     
-    func fetchData() {
+    func fetchBookingsForDateAndSeat(_ date: Date, _ seat: Seat) {
+        listenerRegistration?.remove()
+        listenerRegistration = db.collection("bookings")
+            .whereField("date", isEqualTo: date)
+            .whereField("seat.id", isEqualTo: seat.id)
+            .addSnapshotListener { (querySnapshot, error) in
+                guard let documents = querySnapshot?.documents else {
+                    print("No documents")
+                    return
+                }
+                self.bookings = documents.compactMap { (queryDocumentSnapshot) -> Booking? in
+                    return try? queryDocumentSnapshot.data(as: Booking.self)
+                }
+            }
+    }
+    
+    func fetchUserBookings() {
         guard let uid = Auth.auth().currentUser?.uid else {
             print("User not logged in")
             return
         }
         listenerRegistration?.remove()
-        listenerRegistration = db.collection("students").document(uid).collection("bookings").addSnapshotListener { (querySnapshot, error) in
-            guard let documents = querySnapshot?.documents else {
-                print("No documents")
-                return
+        listenerRegistration = db.collection("students").document(uid).collection("bookings")
+            .addSnapshotListener { (querySnapshot, error) in
+                guard let documents = querySnapshot?.documents else {
+                    print("No documents")
+                    return
+                }
+                self.bookings = documents.compactMap { (queryDocumentSnapshot) -> Booking? in
+                    return try? queryDocumentSnapshot.data(as: Booking.self)
+                }
             }
-            self.bookings = documents.compactMap { (queryDocumentSnapshot) -> Booking? in
-                return try? queryDocumentSnapshot.data(as: Booking.self)
-            }
-        }
     }
 }
+

@@ -21,7 +21,7 @@ struct BookingListView: View {
             }
             .navigationTitle("Bookings")
             .onAppear {
-                viewModel.fetchData()
+                viewModel.fetchUserBookings()
             }
         }
     }
