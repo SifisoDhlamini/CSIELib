@@ -11,23 +11,20 @@ import Firebase
 struct SeatView: View {
     let date: Date
     let rowSeats: RowSeats
-    @StateObject private var viewModel = BookingViewModel()
+    @EnvironmentObject var viewModelManager: ViewModelManager
+    //@StateObject private var viewModel = BookingViewModel()
     @State private var bookings: [Booking] = []
-    @State private var selectedSeat: Seat? // Add this state variable to keep track of the selected seat
-    @State private var isLinkActive: Bool = false // Add this state variable to control the NavigationLink
-    @State private var studentNumber: String = ""
+    @State private var selectedSeat: Seat?
+    @State private var isLinkActive: Bool = false
     @State var err = ""
     
     var body: some View {
-       
-        
-        NavigationView {
+        NavigationView{
             LazyVGrid(columns: Array(repeating: .init(.flexible()), count: 3)) {
-                ForEach(rowSeats.seats.indices, id: \.self) { index in
-                    let seat = rowSeats.seats[index]
-                    
+                ForEach(Array(rowSeats.seats.enumerated()), id: \.offset) { index, seat in
                     Button(action: {
-                        handleSeatSelection(seat)
+                        viewModelManager.bookingViewModel.selectSeat(seat)
+                        isLinkActive = true
                     }) {
                         Text("Seat \(seat.seatNum)")
                             .frame(width: 100, height: 100)
@@ -38,53 +35,33 @@ struct SeatView: View {
                     }
                     .background(
                         NavigationLink(
-                            destination: BookingPageView(seat: seat, date: date, studentNumber: studentNumber),
+                            destination: BookingPageView(seat: seat, date: date).environmentObject(viewModelManager),
                             isActive: $isLinkActive,
                             label: { EmptyView() }
                         )
                     )
-                    .onAppear(perform: fetchStudentNumber)
                 }
             }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        Task {
-                            do {
-                                try await Authentication().logout()
-                            } catch let e {
-                                err = e.localizedDescription
-                            }
+            //.onAppear(perform: viewModelManager.bookingViewModel.fetchStudentNumber)
+        }
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: {
+                    Task {
+                        do {
+                            try await Authentication().logout()
+                        } catch let e {
+                            err = e.localizedDescription
                         }
-                    }) {
-                        Text("Logout")
                     }
+                }) {
+                    Text("Logout")
                 }
             }
         }
-        
-    }
-    func fetchStudentNumber() {
-        guard let uid = Auth.auth().currentUser?.uid else {
-            print("User not logged in")
-            return
-        }
-        
-        let db = Firestore.firestore()
-        db.collection("users").document(uid).getDocument { (document, error) in
-            if let document = document, document.exists {
-                self.studentNumber = document.data()?["studentNumber"] as? String ?? ""
-            } else {
-                print("Document does not exist")
-            }
-        }
-    }
-    
-    func handleSeatSelection(_ seat: Seat) {
-        self.selectedSeat = seat
-        self.isLinkActive = true
     }
 }
+
 
 
 
@@ -93,8 +70,8 @@ struct SeatView: View {
 #Preview {
         // Create some dummy seats
     Group {
-//        SeatView(date: Date(), rowSeats: RowSeats(row: .window))
-//        SeatView(date: Date(), rowSeats: RowSeats(row: .middle))
+            //        SeatView(date: Date(), rowSeats: RowSeats(row: .window))
+            //        SeatView(date: Date(), rowSeats: RowSeats(row: .middle))
         SeatView(date: Date(), rowSeats: RowSeats(row: .cubicle))
     }
 }

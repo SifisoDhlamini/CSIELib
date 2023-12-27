@@ -52,6 +52,7 @@
 		6085F4CE2B31443700BAE1D0 /* Home.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6085F4CD2B31443700BAE1D0 /* Home.swift */; };
 		60D8E4952B36E91F006BACA2 /* RowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60D8E4942B36E91F006BACA2 /* RowView.swift */; };
 		60D8E4972B370C0F006BACA2 /* SeatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60D8E4962B370C0F006BACA2 /* SeatView.swift */; };
+		60E23AC42B3C1A0E00399F6A /* TimeSlot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60E23AC32B3C1A0E00399F6A /* TimeSlot.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -73,6 +74,7 @@
 		6085F4CD2B31443700BAE1D0 /* Home.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Home.swift; sourceTree = "<group>"; };
 		60D8E4942B36E91F006BACA2 /* RowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RowView.swift; sourceTree = "<group>"; };
 		60D8E4962B370C0F006BACA2 /* SeatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeatView.swift; sourceTree = "<group>"; };
+		60E23AC32B3C1A0E00399F6A /* TimeSlot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeSlot.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -141,6 +143,7 @@
 				601E7D652B332DEB00DA4733 /* BookingViewModel.swift */,
 				601E7D672B332E3700DA4733 /* Booking.swift */,
 				6026F2A42B3570D000B1C777 /* BookingPageView.swift */,
+				60E23AC32B3C1A0E00399F6A /* TimeSlot.swift */,
 			);
 			path = Bookings;
 			sourceTree = "<group>";
@@ -309,6 +312,7 @@
 				601E7D682B332E3700DA4733 /* Booking.swift in Sources */,
 				6085F4CE2B31443700BAE1D0 /* Home.swift in Sources */,
 				60D8E4952B36E91F006BACA2 /* RowView.swift in Sources */,
+				60E23AC42B3C1A0E00399F6A /* TimeSlot.swift in Sources */,
 				6085F4CA2B31438600BAE1D0 /* Authentication.swift in Sources */,
 				6026F2A52B3570D000B1C777 /* BookingPageView.swift in Sources */,
 				601E7D662B332DEB00DA4733 /* BookingViewModel.swift in Sources */,

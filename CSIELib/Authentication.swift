@@ -8,6 +8,7 @@
 import Foundation
 import Firebase
 import GoogleSignIn
+import SwiftUI
 
 struct Authentication {
     var err: String?
@@ -54,6 +55,8 @@ struct Authentication {
             let email = user.profile?.email ?? ""
             let studentNum = String(email.prefix(while: { $0 != "@" }))
             
+                
+            
                 // Check if user exists in csie_students collection
             let db = Firestore.firestore()
             let docRef = db.collection("csie_students").document("studentNumbers")
@@ -68,6 +71,7 @@ struct Authentication {
             
                 // Set err to "Logged in successfully" here
             self.err = "Logged in successfully"
+    
             
             let student: [String: Any] = [
                 "uid": authResult.user.uid,
@@ -84,7 +88,7 @@ struct Authentication {
                 ],
                 "bookings": [] // Initialize bookings as an empty array
             ]
-            try await db.collection("students").document(studentNum).setData(student)
+            try await db.collection("students").document(authResult.user.uid).setData(student)
         } catch {
             if let authError = error as? Authentication.AuthenticationError {
                 switch authError {

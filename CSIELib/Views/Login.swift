@@ -10,6 +10,7 @@ import Firebase
 import GoogleSignIn
 
 struct Login: View {
+    @StateObject private var viewModelManager = ViewModelManager()
     @State private var err : String = ""
     
     var body: some View {

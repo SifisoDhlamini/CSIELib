@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct RowView: View {
+    @EnvironmentObject var viewModelManager: ViewModelManager
     let date: Date
     
     var body: some View {
@@ -16,9 +17,11 @@ struct RowView: View {
         let middleRowSeats = RowSeats(row: .middle)
         let cubicleRowSeats = RowSeats(row: .cubicle)
         
+       
+        
         NavigationView{
             VStack {
-                NavigationLink(destination: SeatView(date: date, rowSeats: windowRowSeats)) {
+                NavigationLink(destination: SeatView(date: date, rowSeats: windowRowSeats).environmentObject(viewModelManager)) {
                     Section{
                         Text("Window Row")
                             .font(.title)
@@ -28,7 +31,7 @@ struct RowView: View {
                     }
                 }
                 Divider()
-                NavigationLink(destination: SeatView(date: date, rowSeats: middleRowSeats)) {
+                NavigationLink(destination: SeatView(date: date, rowSeats: middleRowSeats).environmentObject(viewModelManager)) {
                     Section{
                         Text("Middle Row")
                             .font(.title)
@@ -38,7 +41,7 @@ struct RowView: View {
                     }
                 }
                 Divider()
-                NavigationLink(destination: SeatView(date: date, rowSeats: cubicleRowSeats)) {
+                NavigationLink(destination: SeatView(date: date, rowSeats: cubicleRowSeats).environmentObject(viewModelManager)) {
                     Section{
                         Text("Cubicles Row")
                             .font(.title)

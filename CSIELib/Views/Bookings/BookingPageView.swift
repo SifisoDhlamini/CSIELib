@@ -10,14 +10,16 @@ import SwiftUI
 struct BookingPageView: View {
     let seat: Seat
     let date: Date
-    let studentNumber: String // Assuming you have the student number
+    
+    @EnvironmentObject var viewModelManager: ViewModelManager
     @StateObject private var viewModel = BookingViewModel()
     @State private var availableSlots: [TimeSlot] = []
     @State private var selectedSlots: [TimeSlot] = []
+    @State private var studentNumber: String = ""
     @EnvironmentObject var viewRouter: ViewRouter
     
     var body: some View {
-        NavigationView{
+        NavigationStack {
             List(availableSlots, id: \.self) { slot in
                 Button(action: {
                     handleSlotSelection(slot)
@@ -26,16 +28,25 @@ struct BookingPageView: View {
                         .foregroundColor(selectedSlots.contains(slot) ? .white : .black)
                         .background(selectedSlots.contains(slot) ? Color.blue : Color.clear)
                 }
-            }            
-            .navigationBarItems(trailing: Button("Submit") {
-                submitBooking()
-            })
+            }
         }
+        .navigationBarItems(trailing: HStack {
+            Button("Submit") {
+                submitBooking()
+            }
+            
+            NavigationLink(
+                destination: BookingListView().environmentObject(viewModelManager), // Replace with the actual destination view
+                isActive: $viewRouter.isBookingsListActive,
+                label: {
+                    EmptyView()
+                }
+            )
+        })
         .onAppear {
             fetchAvailableSlots()
         }
     }
-    
     
     func handleSlotSelection(_ slot: TimeSlot) {
         if selectedSlots.contains(slot) {
@@ -49,13 +60,14 @@ struct BookingPageView: View {
     
     func submitBooking() {
         for slot in selectedSlots {
-            let booking = Booking(date: date, startTime: slot.start, endTime: slot.end, duration: Int(slot.end.timeIntervalSince(slot.start)), seat: seat)
-            viewModel.createUserBooking(booking)
-
+            let booking = Booking(date: date, startTime: slot.start, endTime: slot.end, duration: Int(slot.end.timeIntervalSince(slot.start)), seat: seat, studentNumber: viewModelManager.bookingViewModel.studentNumber)
+            viewModelManager.bookingViewModel.createUserBooking(booking)
         }
             // Redirect to BookingViewList Page
-        self.viewRouter.currentPage = "home"
+            // Set the isBookingsListActive to true to trigger NavigationLink
+        self.viewRouter.isBookingsListActive = true
     }
+
     
     func fetchAvailableSlots() {
         viewModel.fetchBookingsForDateAndSeat(date, seat)
@@ -81,22 +93,11 @@ struct BookingPageView: View {
     }
 }
 
-struct TimeSlot: Identifiable, Hashable {
-    let id = UUID()
-    let start: Date
-    let end: Date
-    
-    var displayString: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "h:mm a"
-        return "\(formatter.string(from: start)) - \(formatter.string(from: end))"
-    }
-}
 
 
 
 
 #Preview {
     let seat = Seat(seatNum: 1, row: .window, booked: false)
-    return BookingPageView(seat: seat, date: Date(), studentNumber: "410921334")
+    return BookingPageView(seat: seat, date: Date())
 }

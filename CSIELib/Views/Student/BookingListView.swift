@@ -8,21 +8,22 @@
 import SwiftUI
 
 struct BookingListView: View {
-    @ObservedObject var viewModel = BookingViewModel()
+    @EnvironmentObject var viewModelManager: ViewModelManager
     
     var body: some View {
         NavigationView {
-            List(viewModel.bookings) { booking in
+            List(viewModelManager.bookingViewModel.bookings) { booking in
                 NavigationLink(destination: BookingDetailView(booking: booking)) {
+                    
                     VStack(alignment: .leading) {
                         Text("Date: \(booking.date, formatter: dateFormatter)")
                     }
                 }
             }
             .navigationTitle("Bookings")
-            .onAppear {
-                viewModel.fetchUserBookings()
-            }
+        }
+        .onAppear {
+            viewModelManager.bookingViewModel.fetchUserBookings()
         }
     }
     
@@ -37,29 +38,15 @@ struct BookingDetailView: View {
     var booking: Booking
     
     var body: some View {
-        VStack(alignment: .leading) {
-            Text("Date: \(booking.date, formatter: dateFormatter)")
-            Text("Start Time: \(booking.startTime, formatter: timeFormatter)")
-            Text("End Time: \(booking.endTime, formatter: timeFormatter)")
-            Text("Duration: \(booking.duration) hours")
-            Text("Seat Number: \(booking.seat.seatNum)")
-            Text("Row: \(booking.seat.row.rawValue.capitalized)")
+        NavigationView {
+            List {
+                    // Add details based on the booking, if needed
+            }
+            .navigationTitle("Booking Details")
         }
-        .navigationTitle("Booking Details")
     }
-    
-    private let dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .long
-        return formatter
-    }()
-    
-    private let timeFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        return formatter
-    }()
 }
+
 
 
 #Preview {

@@ -19,6 +19,7 @@ extension DateFormatter {
 }
 
 struct Home: View {
+    @EnvironmentObject var viewModelManager: ViewModelManager
     @State private var err: String = ""
     @State private var selectedDate: Date?
     @State private var bookingsForWeek: [Date: [Booking]] = [:]
@@ -41,7 +42,7 @@ struct Home: View {
                     .ignoresSafeArea()
                     .opacity(0.3)
                 
-                VStack {
+                //VStack {
                     List {
                         ForEach(getDatesForCurrentWeek(), id: \.self) { date in
                             let calendar = Calendar.current
@@ -60,7 +61,7 @@ struct Home: View {
                                 .opacity(0.5)
                             } else {
                                 NavigationLink(
-                                    destination: RowView(date: date),
+                                    destination: RowView(date: date).environmentObject(viewModelManager),
                                     label: {
                                         HStack {
                                             Spacer()
@@ -76,7 +77,7 @@ struct Home: View {
                             }
                         }
                         NavigationLink(
-                            destination: BookingListView(),
+                            destination: BookingListView().environmentObject(viewModelManager),
                             label: {
                                 Text("View Current Bookings")
                                     .foregroundColor(.blue)
@@ -86,23 +87,24 @@ struct Home: View {
                     }
                     .frame(width: 400, height: 300)
                     .background(Color.clear)
-                }
-                .navigationTitle("CSIELib")
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button(action: {
-                            Task {
-                                do {
-                                    try await Authentication().logout()
-                                } catch let e {
-                                    err = e.localizedDescription
+                    .navigationTitle("CSIELib")
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button(action: {
+                                Task {
+                                    do {
+                                        try await Authentication().logout()
+                                    } catch let e {
+                                        err = e.localizedDescription
+                                    }
                                 }
+                            }) {
+                                Text("Logout")
                             }
-                        }) {
-                            Text("Logout")
                         }
                     }
-                }
+                //}
+                
             }
         }
     }

@@ -9,6 +9,7 @@ import SwiftUI
 import Firebase
 
 struct ContentView: View {
+    @EnvironmentObject var viewModelManager: ViewModelManager
     @EnvironmentObject var viewRouter: ViewRouter
     @State private var userLoggedIn = (Auth.auth().currentUser != nil)
     
@@ -18,21 +19,25 @@ struct ContentView: View {
                 case "home":
                     if userLoggedIn {
                         Home()
+                            .environmentObject(viewModelManager)
                     } else {
                         Login()
+                            .environmentObject(viewModelManager)
                     }
                 case "booking":
                     BookingListView()
-                        // Add more cases as needed
+                        .environmentObject(viewModelManager)
                 default:
                     if userLoggedIn {
                         Home()
+                            .environmentObject(viewModelManager)
                     } else {
                         Login()
+                            .environmentObject(viewModelManager)
                     }
             }
         }.onAppear{
-                //Firebase state change listener
+            viewModelManager.bookingViewModel.fetchStudentNumber()
             Auth.auth().addStateDidChangeListener{ auth, user in
                 if (user != nil) {
                     userLoggedIn = true
