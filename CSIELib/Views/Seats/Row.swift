@@ -25,7 +25,7 @@ enum Row: String, Codable {
 }
 
 struct RowSeats: Identifiable, Codable {
-    var id = UUID()
+    var id: String
     var row: Row
     var seats: [Seat]
     
@@ -36,12 +36,14 @@ struct RowSeats: Identifiable, Codable {
     }
     
     init(row: Row) {
+        self.id = UUID().uuidString
         self.row = row
         self.seats = (1...row.seatCount).map { Seat(seatNum: $0, row: row, booked: false) }
     }
     
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
         row = try container.decode(Row.self, forKey: .row)
         seats = try container.decode([Seat].self, forKey: .seats)
     }
@@ -53,3 +55,4 @@ struct RowSeats: Identifiable, Codable {
         try container.encode(seats, forKey: .seats)
     }
 }
+

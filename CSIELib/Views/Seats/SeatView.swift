@@ -6,79 +6,86 @@
 //
 
 import SwiftUI
-
-extension Date {
-    var startOfDay: Date {
-        return Calendar.current.startOfDay(for: self)
-    }
-    
-    var endOfDay: Date {
-        var components = DateComponents()
-        components.day = 1
-        components.second = -1
-        return Calendar.current.date(byAdding: components, to: startOfDay)!
-    }
-}
+import Firebase
 
 struct SeatView: View {
     let date: Date
     let rowSeats: RowSeats
-    @StateObject private var viewModel = BookingViewModel();    
-    @State private var bookings: [Booking] = [] // You'll need to fetch the bookings for the selected date and row
+    @StateObject private var viewModel = BookingViewModel()
+    @State private var bookings: [Booking] = []
+    @State private var selectedSeat: Seat? // Add this state variable to keep track of the selected seat
+    @State private var isLinkActive: Bool = false // Add this state variable to control the NavigationLink
+    @State private var studentNumber: String = ""
+    @State var err = ""
     
     var body: some View {
-            // Define the grid columns
-        let columns = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
+       
         
-        LazyVGrid(columns: columns) {
-            ForEach(0..<rowSeats.seats.count, id: \.self) { index in
-                let seat = rowSeats.seats[index]
-                let booking = bookings.first(where: { $0.seat.id == seat.id })
-                let isBooked = booking != nil
-                let isAvailable = !isBooked && isWithinWorkingHours(booking?.startTime, booking?.endTime)
-                
-                Button(action: {
-                        // Handle seat selection
-                    if isAvailable {
+        NavigationView {
+            LazyVGrid(columns: Array(repeating: .init(.flexible()), count: 3)) {
+                ForEach(rowSeats.seats.indices, id: \.self) { index in
+                    let seat = rowSeats.seats[index]
+                    
+                    Button(action: {
                         handleSeatSelection(seat)
+                    }) {
+                        Text("Seat \(seat.seatNum)")
+                            .frame(width: 100, height: 100)
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                            .padding()
                     }
-                }) {
-                    Text("Seat \(seat.seatNum)")
-                        .frame(width: 100, height: 100)
-                        .background(isAvailable ? Color.green : Color.red)
-                        .cornerRadius(10)
-                        .padding()
+                    .background(
+                        NavigationLink(
+                            destination: BookingPageView(seat: seat, date: date, studentNumber: studentNumber),
+                            isActive: $isLinkActive,
+                            label: { EmptyView() }
+                        )
+                    )
+                    .onAppear(perform: fetchStudentNumber)
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        Task {
+                            do {
+                                try await Authentication().logout()
+                            } catch let e {
+                                err = e.localizedDescription
+                            }
+                        }
+                    }) {
+                        Text("Logout")
+                    }
                 }
             }
         }
-        .onAppear {
-                // Fetch the bookings for the selected date and row
-            fetchBookings()
-        }
-    }
-    
-    func isWithinWorkingHours(_ startTime: Date?, _ endTime: Date?) -> Bool {
-        guard let startTime = startTime, let endTime = endTime else { return false }
-        let calendar = Calendar.current
-        let startHour = calendar.component(.hour, from: startTime)
-        let endHour = calendar.component(.hour, from: endTime)
-        return startHour >= 8 && endHour <= 17
-    }
-    
-    func fetchBookings() {
-        viewModel.fetchBookingsForDateAndSeat(date, rowSeats.seats.first!)
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            bookings = viewModel.bookings.filter { booking in
-                booking.date >= date.startOfDay && booking.date < date.endOfDay && rowSeats.seats.contains(where: { $0.id == booking.seat.id })
+    }
+    func fetchStudentNumber() {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            print("User not logged in")
+            return
+        }
+        
+        let db = Firestore.firestore()
+        db.collection("users").document(uid).getDocument { (document, error) in
+            if let document = document, document.exists {
+                self.studentNumber = document.data()?["studentNumber"] as? String ?? ""
+            } else {
+                print("Document does not exist")
             }
         }
     }
     
     func handleSeatSelection(_ seat: Seat) {
-            // Implement your logic to handle the seat selection
+        self.selectedSeat = seat
+        self.isLinkActive = true
     }
 }
+
 
 
 
@@ -86,8 +93,8 @@ struct SeatView: View {
 #Preview {
         // Create some dummy seats
     Group {
-        //SeatView(date: Date(), rowSeats: RowSeats(row: .window))
-        //SeatView(date: Date(), rowSeats: RowSeats(row: .middle))
+//        SeatView(date: Date(), rowSeats: RowSeats(row: .window))
+//        SeatView(date: Date(), rowSeats: RowSeats(row: .middle))
         SeatView(date: Date(), rowSeats: RowSeats(row: .cubicle))
     }
 }

@@ -29,17 +29,14 @@ struct Login: View {
                     .font(.largeTitle)
                     .bold()
                     .foregroundStyle(Color.primary)
-//                    .shadow(
-//                        color: .primary,
-//                        radius: CGFloat(10),
-//                        x: CGFloat(5), y: CGFloat(10))
                 Button{
                     Task {
                         do {
-                            try await Authentication().googleOauth()
-                        } catch let e {
-                            print(e)
-                            err = e.localizedDescription
+                            var auth = Authentication()
+                            self.err = try await auth.googleOauth()
+                        } catch {
+                                // Handle other potential errors here
+                            self.err = error.localizedDescription
                         }
                     }
                 }label: {
@@ -54,6 +51,7 @@ struct Login: View {
         }
     }
 }
+
 
 #Preview {
     Login()

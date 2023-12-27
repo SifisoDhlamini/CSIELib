@@ -10,31 +10,54 @@ import SwiftUI
 struct BookingPageView: View {
     let seat: Seat
     let date: Date
-    @State private var availableSlots: [TimeSlot] = [] // You'll need to fetch the available slots for the selected date and seat
+    let studentNumber: String // Assuming you have the student number
+    @StateObject private var viewModel = BookingViewModel()
+    @State private var availableSlots: [TimeSlot] = []
     @State private var selectedSlots: [TimeSlot] = []
+    @EnvironmentObject var viewRouter: ViewRouter
     
     var body: some View {
-        List(availableSlots, id: \.self) { slot in
-            Button(action: {
-                    // Handle slot selection
-                if selectedSlots.contains(slot) {
-                    selectedSlots.removeAll(where: { $0 == slot })
-                } else if selectedSlots.count < 6 { // Maximum 3 hours per day
-                    selectedSlots.append(slot)
+        NavigationView{
+            List(availableSlots, id: \.self) { slot in
+                Button(action: {
+                    handleSlotSelection(slot)
+                }) {
+                    Text(slot.displayString)
+                        .foregroundColor(selectedSlots.contains(slot) ? .white : .black)
+                        .background(selectedSlots.contains(slot) ? Color.blue : Color.clear)
                 }
-            }) {
-                Text(slot.displayString)
-                    .foregroundColor(selectedSlots.contains(slot) ? .white : .black)
-                    .background(selectedSlots.contains(slot) ? Color.blue : Color.clear)
-            }
+            }            
+            .navigationBarItems(trailing: Button("Submit") {
+                submitBooking()
+            })
         }
         .onAppear {
             fetchAvailableSlots()
         }
     }
     
+    
+    func handleSlotSelection(_ slot: TimeSlot) {
+        if selectedSlots.contains(slot) {
+            selectedSlots.removeAll(where: { $0 == slot })
+        } else if selectedSlots.count < 6 {
+            if selectedSlots.isEmpty || (slot.start == selectedSlots.last!.end) {
+                selectedSlots.append(slot)
+            }
+        }
+    }
+    
+    func submitBooking() {
+        for slot in selectedSlots {
+            let booking = Booking(date: date, startTime: slot.start, endTime: slot.end, duration: Int(slot.end.timeIntervalSince(slot.start)), seat: seat)
+            viewModel.createUserBooking(booking)
+
+        }
+            // Redirect to BookingViewList Page
+        self.viewRouter.currentPage = "home"
+    }
+    
     func fetchAvailableSlots() {
-        let viewModel = BookingViewModel()
         viewModel.fetchBookingsForDateAndSeat(date, seat)
         
         let calendar = Calendar.current
@@ -72,7 +95,8 @@ struct TimeSlot: Identifiable, Hashable {
 
 
 
+
 #Preview {
     let seat = Seat(seatNum: 1, row: .window, booked: false)
-    return BookingPageView(seat: seat, date: Date())
+    return BookingPageView(seat: seat, date: Date(), studentNumber: "410921334")
 }

@@ -9,15 +9,25 @@ import SwiftUI
 import Firebase
 import GoogleSignIn
 
+class ViewRouter: ObservableObject {
+    @Published var currentPage: String
+    init(currentPage: String = "home") {
+        self.currentPage = currentPage
+    }
+}
+
 @main
 struct CSIELibApp: App {
+    @StateObject var viewRouter = ViewRouter()
     init() {
             // Firebase initialization
         FirebaseApp.configure()
     }
     var body: some Scene {
         WindowGroup {
-            ContentView().onOpenURL { url in
+            ContentView()
+                .environmentObject(viewRouter)
+                .onOpenURL { url in
                     //Handle Google Oauth URL
                 GIDSignIn.sharedInstance.handle(url)
             }

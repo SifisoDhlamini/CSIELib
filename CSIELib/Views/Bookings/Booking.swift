@@ -25,6 +25,15 @@ struct Booking: Identifiable, Codable {
         case seat
     }
     
+    init(date: Date, startTime: Date, endTime: Date, duration: Int, seat: Seat) {
+        self.date = date
+        self.startTime = startTime
+        self.endTime = endTime
+        self.duration = duration
+        self.seat = seat
+    }
+
+    
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(String.self, forKey: .id)
@@ -45,3 +54,4 @@ struct Booking: Identifiable, Codable {
         try container.encode(seat, forKey: .seat)
     }
 }
+
