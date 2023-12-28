@@ -19,15 +19,13 @@ struct BookingPageView: View {
     @EnvironmentObject var viewRouter: ViewRouter
     
     var body: some View {
-        NavigationStack {
-            List(availableSlots, id: \.self) { slot in
-                Button(action: {
-                    handleSlotSelection(slot)
-                }) {
-                    Text(slot.displayString)
-                        .foregroundColor(selectedSlots.contains(slot) ? .white : .black)
-                        .background(selectedSlots.contains(slot) ? Color.blue : Color.clear)
-                }
+        List(availableSlots, id: \.self) { slot in
+            Button(action: {
+                handleSlotSelection(slot)
+            }) {
+                Text(slot.displayString)
+                    .foregroundColor(selectedSlots.contains(slot) ? .white : .black)
+                    .background(selectedSlots.contains(slot) ? Color.blue : Color.clear)
             }
         }
         .navigationBarItems(trailing: HStack {
@@ -36,7 +34,7 @@ struct BookingPageView: View {
             }
             
             NavigationLink(
-                destination: BookingListView().environmentObject(viewModelManager), // Replace with the actual destination view
+                destination: BookingListView().environmentObject(viewModelManager),
                 isActive: $viewRouter.isBookingsListActive,
                 label: {
                     EmptyView()

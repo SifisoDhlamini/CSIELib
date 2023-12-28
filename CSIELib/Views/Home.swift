@@ -35,20 +35,26 @@ struct Home: View {
     
     var body: some View {
         NavigationStack{
-            ZStack{
-                Image(.verticalLibrary)
-                    .resizable()
-                    .scaledToFill()
-                    .ignoresSafeArea()
-                    .opacity(0.3)
-                
-                //VStack {
-                    List {
-                        ForEach(getDatesForCurrentWeek(), id: \.self) { date in
-                            let calendar = Calendar.current
-                            let today = calendar.startOfDay(for: Date())
-                            
-                            if date <= today {
+            List {
+                ForEach(getDatesForCurrentWeek(), id: \.self) { date in
+                    let calendar = Calendar.current
+                    let today = calendar.startOfDay(for: Date())
+                    
+                    if date <= today {
+                        HStack {
+                            Spacer()
+                            Text(date, formatter: DateFormatter.dayOfWeekFormatter)
+                                .frame(width: 100, alignment: .leading)
+                            Divider()
+                            Text(date, style: .date)
+                                .font(.headline)
+                            Spacer()
+                        }
+                        .opacity(0.5)
+                    } else {
+                        NavigationLink(
+                            destination: RowView(date: date).environmentObject(viewModelManager),
+                            label: {
                                 HStack {
                                     Spacer()
                                     Text(date, formatter: DateFormatter.dayOfWeekFormatter)
@@ -58,53 +64,37 @@ struct Home: View {
                                         .font(.headline)
                                     Spacer()
                                 }
-                                .opacity(0.5)
-                            } else {
-                                NavigationLink(
-                                    destination: RowView(date: date).environmentObject(viewModelManager),
-                                    label: {
-                                        HStack {
-                                            Spacer()
-                                            Text(date, formatter: DateFormatter.dayOfWeekFormatter)
-                                                .frame(width: 100, alignment: .leading)
-                                            Divider()
-                                            Text(date, style: .date)
-                                                .font(.headline)
-                                            Spacer()
-                                        }
-                                    }
-                                )
-                            }
-                        }
-                        NavigationLink(
-                            destination: BookingListView().environmentObject(viewModelManager),
-                            label: {
-                                Text("View Current Bookings")
-                                    .foregroundColor(.blue)
-                                    .font(.headline)
                             }
                         )
                     }
-                    .frame(width: 400, height: 300)
-                    .background(Color.clear)
-                    .navigationTitle("CSIELib")
-                    .toolbar {
-                        ToolbarItem(placement: .navigationBarTrailing) {
-                            Button(action: {
-                                Task {
-                                    do {
-                                        try await Authentication().logout()
-                                    } catch let e {
-                                        err = e.localizedDescription
-                                    }
-                                }
-                            }) {
-                                Text("Logout")
+                }
+                NavigationLink(
+                    destination: BookingListView().environmentObject(viewModelManager),
+                    label: {
+                        Text("View Current Bookings")
+                            .foregroundColor(.blue)
+                            .font(.headline)
+                    }
+                )
+            }
+            .onAppear {
+                viewModelManager.bookingViewModel.fetchUserBookings()
+            }
+            .navigationTitle("CSIELib")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        Task {
+                            do {
+                                try await Authentication().logout()
+                            } catch let e {
+                                err = e.localizedDescription
                             }
                         }
+                    }) {
+                        Text("Logout")
                     }
-                //}
-                
+                }
             }
         }
     }

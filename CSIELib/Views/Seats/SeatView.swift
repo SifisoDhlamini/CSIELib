@@ -10,11 +10,11 @@ import Firebase
 
 struct SeatView: View {
     let date: Date
-    let rowSeats: RowSeats
+    var rowSeats: RowSeats
     @EnvironmentObject var viewModelManager: ViewModelManager
     //@StateObject private var viewModel = BookingViewModel()
     @State private var bookings: [Booking] = []
-    @State private var selectedSeat: Seat?
+    //@State private var selectedSeat: Seat?
     @State private var isLinkActive: Bool = false
     @State var err = ""
     
@@ -23,6 +23,7 @@ struct SeatView: View {
             LazyVGrid(columns: Array(repeating: .init(.flexible()), count: 3)) {
                 ForEach(Array(rowSeats.seats.enumerated()), id: \.offset) { index, seat in
                     Button(action: {
+                        viewModelManager.bookingViewModel.selectSeat(seat)
                         viewModelManager.bookingViewModel.selectSeat(seat)
                         isLinkActive = true
                     }) {
