@@ -66,43 +66,44 @@ struct Home: View {
                                 }
                             }
                         )
+                            //}
                     }
-                }
-                NavigationLink(
-                    destination: BookingListView().environmentObject(viewModelManager),
-                    label: {
-                        Text("View Current Bookings")
-                            .foregroundColor(.blue)
-                            .font(.headline)
-                    }
-                )
-            }
-            .onAppear {
-                viewModelManager.bookingViewModel.fetchUserBookings()
-            }
-            .navigationTitle("CSIELib")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        Task {
-                            do {
-                                try await Authentication().logout()
-                            } catch let e {
-                                err = e.localizedDescription
-                            }
+                    NavigationLink(
+                        destination: BookingListView().environmentObject(viewModelManager),
+                        label: {
+                            Text("View Current Bookings")
+                                .foregroundColor(.blue)
+                                .font(.headline)
                         }
-                    }) {
-                        Text("Logout")
+                    )
+                }
+                .onAppear {
+                    viewModelManager.bookingViewModel.fetchUserBookings()
+                }
+                .navigationTitle("CSIELib")
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button(action: {
+                            Task {
+                                do {
+                                    try await Authentication().logout()
+                                } catch let e {
+                                    err = e.localizedDescription
+                                }
+                            }
+                        }) {
+                            Text("Logout")
+                        }
                     }
                 }
             }
-        }
+            Home()
+                .environment(\.locale, .init(identifier: "en"))
+                .previewDisplayName("Home Preview")
+        }   
     }
 }
 
 #Preview {
     Home()
-        .environment(\.locale, .init(identifier: "en"))
-        .previewDisplayName("Home Preview")
 }
-

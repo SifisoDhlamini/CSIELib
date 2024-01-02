@@ -50,9 +50,18 @@ struct RowView: View {
                             .scaledToFit()
                     }
                 }
+                
+                //RowNavigation()
+                
             }
             .navigationTitle("Select Row")
         }
+    }
+}
+
+struct RowNavigation: View {
+    var body: some View {
+        Text("view")
     }
 }
 

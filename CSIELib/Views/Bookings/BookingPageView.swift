@@ -59,6 +59,7 @@ struct BookingPageView: View {
     func submitBooking() {
         for slot in selectedSlots {
             let booking = Booking(date: date, startTime: slot.start, endTime: slot.end, duration: Int(slot.end.timeIntervalSince(slot.start)), seat: seat, studentNumber: viewModelManager.bookingViewModel.studentNumber)
+            viewModelManager.bookingViewModel.createBooking(booking)
             viewModelManager.bookingViewModel.createUserBooking(booking)
         }
             // Redirect to BookingViewList Page
@@ -90,10 +91,6 @@ struct BookingPageView: View {
         }
     }
 }
-
-
-
-
 
 #Preview {
     let seat = Seat(seatNum: 1, row: .window, booked: false)

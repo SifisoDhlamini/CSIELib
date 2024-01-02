@@ -16,7 +16,7 @@ class BookingViewModel: ObservableObject {
     @Published var seats: [Seat] = [] // Initialize with your seats
     @Published var selectedSeat: Seat?
     @Published var studentNumber: String = ""
-
+    
     private var db = Firestore.firestore()
     private var listenerRegistration: ListenerRegistration?
     
@@ -53,9 +53,9 @@ class BookingViewModel: ObservableObject {
             print("User not logged in")
             return
         }
-       // print(userID)
+            // print(userID)
         db.collection("students").document(userID).getDocument { [self] (document, error) in
-            //print(document ?? "Could not fetch document")
+                //print(document ?? "Could not fetch document")
             if let error = error {
                 print("Error getting document: \(error)")
                 self.error = error
@@ -63,7 +63,7 @@ class BookingViewModel: ObservableObject {
                 print(document.data()?["studentNum"] as? String ?? "")
                 self.studentNumber = document.data()?["studentNum"] as? String ?? ""
                 print(studentNumber)
-                //self.viewModelManager.bookingViewModel.studentNumber = self.studentNumber
+                    //self.viewModelManager.bookingViewModel.studentNumber = self.studentNumber
             } else {
                 print("Document does not exist")
             }
@@ -107,13 +107,17 @@ class BookingViewModel: ObservableObject {
                 }
             }
     }
-
-
-
+    
+    
+    
     
     func createBooking(_ booking: Booking) {
         do {
-            let _ = try db.collection("bookings").addDocument(from: booking)
+                // Save the booking in the "bookings" collection with the booking's id as the document ID
+            let _ = try db.collection("bookings").document(booking.id.uuidString).setData(from: booking)
+            
+                // Also save the booking in the student's document under the "bookings" array
+            createUserBooking(booking)
         } catch let error {
             print("Error writing booking to Firestore: \(error)")
             self.error = error
@@ -121,7 +125,6 @@ class BookingViewModel: ObservableObject {
     }
     
     func createUserBooking(_ booking: Booking) {
-        createBooking(booking)
         guard let userID = Auth.auth().currentUser?.uid else {
             print("User not logged in")
             return
@@ -131,7 +134,12 @@ class BookingViewModel: ObservableObject {
             let studentDocument = db.collection("students").document(userID)
             
                 // Convert the booking to a dictionary
-            let bookingData = try booking.asDictionary()
+            let encoder = JSONEncoder()
+            encoder.dateEncodingStrategy = .iso8601
+            let data = try encoder.encode(booking)
+            guard let bookingData = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any] else {
+                throw NSError()
+            }
             
                 // Add the booking to the "bookings" array in the student document
             studentDocument.updateData([
@@ -150,13 +158,13 @@ class BookingViewModel: ObservableObject {
     }
 }
 
-extension Booking {
-    func asDictionary() throws -> [String: Any] {
-        let data = try JSONEncoder().encode(self)
-        guard let dictionary = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any] else {
-            throw NSError()
-        }
-        return dictionary
-    }
-}
+//extension Booking {
+//    func asDictionary() throws -> [String: Any] {
+//        let data = try JSONEncoder().encode(self)
+//        guard let dictionary = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any] else {
+//            throw NSError()
+//        }
+//        return dictionary
+//    }
+//}
 

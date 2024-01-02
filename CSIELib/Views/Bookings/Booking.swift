@@ -11,7 +11,7 @@ import Firebase
 import FirebaseFirestoreSwift
 
 struct Booking: Identifiable, Codable {
-    @DocumentID var id: String?
+    var id: UUID
     var date: Date
     var startTime: Date
     var endTime: Date
@@ -30,6 +30,7 @@ struct Booking: Identifiable, Codable {
     }
     
     init(date: Date, startTime: Date, endTime: Date, duration: Int, seat: Seat, studentNumber: String) {
+        self.id = UUID() // Generate a new UUID
         self.date = date
         self.startTime = startTime
         self.endTime = endTime
@@ -41,16 +42,35 @@ struct Booking: Identifiable, Codable {
     
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        let timestampDate = try container.decode(Double.self, forKey: .date)
-        date = Date(timeIntervalSince1970: timestampDate)
-        let timestampStartTime = try container.decode(Double.self, forKey: .startTime)
-        startTime = Date(timeIntervalSince1970: timestampStartTime)
-        let timestampEndTime = try container.decode(Double.self, forKey: .endTime)
-        endTime = Date(timeIntervalSince1970: timestampEndTime)
+        
+        let dateFormatter = ISO8601DateFormatter()
+        
+        id = try container.decode(UUID.self, forKey: .id)
+        
+        let dateString = try container.decode(String.self, forKey: .date)
+        guard let date = dateFormatter.date(from: dateString) else {
+            throw DecodingError.dataCorruptedError(forKey: .date, in: container, debugDescription: "Date string does not match format expected by formatter.")
+        }
+        self.date = date
+        
+        let startTimeString = try container.decode(String.self, forKey: .startTime)
+        guard let startTime = dateFormatter.date(from: startTimeString) else {
+            throw DecodingError.dataCorruptedError(forKey: .startTime, in: container, debugDescription: "Start time string does not match format expected by formatter.")
+        }
+        self.startTime = startTime
+        
+        let endTimeString = try container.decode(String.self, forKey: .endTime)
+        guard let endTime = dateFormatter.date(from: endTimeString) else {
+            throw DecodingError.dataCorruptedError(forKey: .endTime, in: container, debugDescription: "End time string does not match format expected by formatter.")
+        }
+        self.endTime = endTime
+        
         duration = try container.decode(Int.self, forKey: .duration)
         seat = try container.decode(Seat.self, forKey: .seat)
         studentNumber = try container.decode(String.self, forKey: .studentNumber)
     }
+
+
 
     
     func encode(to encoder: Encoder) throws {
